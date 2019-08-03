@@ -1,0 +1,124 @@
+
+#define MUX_A D4
+#define MUX_B D3
+#define MUX_C D2
+#define ANALOG_INPUT A0
+#include <MQ135.h>
+#include <ESP8266WiFi.h>
+#include <WiFiClient.h>
+#include <FirebaseArduino.h>
+#define WIFI_SSID "Nethravathy"
+#define WIFI_PASSWORD "nmit@123"
+#define FIREBASE_HOST "airquality-8ca13.firebaseio.com"
+#define FIREBASE_AUTH "n6kxrSBPcdX9eUYVbQ9GtHM6VZjRMKy4G2gh97dM"
+#include <Wire.h>
+#include <ThingSpeak.h>;
+#include <DHT.h> 
+#define DHTPIN 12                                      
+#define DHTTYPE DHT11                                                                   
+DHT dht(DHTPIN, DHTTYPE);                             
+#define co2Zero 75
+int sensorValue;
+unsigned long myChannelNumber =  831432; //Your Channel Number (Without Brackets)
+const char * myWriteAPIKey = "A1LMONFQ9RAEBSI7"; //Your Write API Key
+WiFiClient client;
+
+void setup(){ 
+  Serial.begin(115200); 
+  pinMode(ANALOG_INPUT,INPUT); 
+  dht.begin(); 
+  ThingSpeak.begin(client); 
+  Firebase.begin(FIREBASE_HOST, FIREBASE_AUTH);
+    //Deifne output pins for Mux
+  Serial.begin(115200); 
+  pinMode(MUX_A, OUTPUT);
+  pinMode(MUX_B, OUTPUT);     
+  pinMode(MUX_C, OUTPUT);
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  Serial.print("connecting");
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print(".");
+    delay(500);
+  }
+  Serial.println();
+  Serial.print("connected: ");
+  Serial.println(WiFi.localIP());
+  
+ }
+
+ void changeMux(int c, int b, int a) {
+  digitalWrite(MUX_A, a);
+  digitalWrite(MUX_B, b);
+  digitalWrite(MUX_C, c);
+}
+
+ 
+void loop(){
+
+  float value;
+
+  changeMux(LOW, LOW, HIGH);
+  value = analogRead(ANALOG_INPUT); //Value of the sensor connected Option 1 pin of Mux
+  Serial.print("AirQuality = ");
+  Serial.print(value);               // prints the value read
+  Serial.println(" PPM");
+  Firebase.setInt("AirQuality2", value);
+  ThingSpeak.writeField(myChannelNumber, 2,value, myWriteAPIKey);
+  delay(1000);
+  int co2now[10];
+  int co2raw=0;
+  int co2comp=0;
+  int co2ppm=0;
+  int zzz=0;
+  for(int x=0;x<10;x++)
+  {
+    co2now[x]=analogRead(A0);
+    delay(200);
+  }
+  for(int x=0;x<10;x++){
+    zzz=zzz+co2now[x];
+  }
+  co2raw=zzz/10;
+  co2comp=co2raw-co2Zero;
+  co2ppm=map(co2comp,0,1023,400,5000);
+  Serial.print("Carbon-dioxide = ");
+  Serial.print(co2ppm);
+  Serial.println(" PPM");
+  Firebase.setInt("Carbon-dioxide2", co2ppm);
+  ThingSpeak.writeField( myChannelNumber, 4, co2ppm, myWriteAPIKey); 
+  delay(1000);
+
+  changeMux(LOW, LOW, LOW);
+  float sensor_volt;
+  float RS_gas; // Get value of RS in a GAS
+  float ratio; // Get ratio RS_GAS/RS_air
+  value = analogRead(ANALOG_INPUT); //Value of the sensor connected Option 0 pin of Mux
+  sensor_volt=(float)value/1024*5.0;
+  RS_gas = (5.0-sensor_volt)/sensor_volt;
+  ratio = RS_gas/2.41; //ratio=Rs/R0
+  Serial.print("Carbon-monoxide = ");
+  Serial.print(ratio);
+  Serial.println(" PPM");
+  Firebase.setInt("Carbon-monoxide2", ratio);
+  ThingSpeak.writeField( myChannelNumber, 6, ratio, myWriteAPIKey); 
+  delay(1000);
+
+  int humid=0;
+  int temp=0;
+  Serial.print("Current humidity = ");
+  humid=dht.readHumidity();
+  Serial.print(dht.readHumidity());
+  Serial.println("%  ");
+  Firebase.setInt("Humidity", humid);
+  ThingSpeak.writeField( myChannelNumber, 7, humid, myWriteAPIKey); //Update in ThingSpeak
+  delay(1000);
+  Serial.print("Temperature = ");
+  temp=dht.readTemperature();
+  Serial.print(dht.readTemperature());
+  Serial.println(" degrees Celcius  ");
+  Serial.println("\n");
+  Firebase.setInt("Temperature", temp);
+  ThingSpeak.writeField( myChannelNumber, 8, temp, myWriteAPIKey); //Update in ThingSpeak 
+  delay(5000);
+
+}
