@@ -17,15 +17,19 @@ It is now important to monitor air pollution in real time in most of the urban a
 ![g1](https://user-images.githubusercontent.com/47209023/62412346-8a797300-b61e-11e9-9974-3219ac853833.PNG)
 
 FLOW CHART :-
+
 ![g2](https://user-images.githubusercontent.com/47209023/62412348-8c433680-b61e-11e9-9bb1-ada47e5dad8b.PNG)
 
 SNAPSHOT OF MODEL :-
+
 ![IMG_20190731_082454](https://user-images.githubusercontent.com/47209023/62412350-8ea59080-b61e-11e9-8a4b-790b3f66b592.jpg)
 
 Sensor data values table :-
+
 ![i4](https://user-images.githubusercontent.com/47209023/62412332-77ff3980-b61e-11e9-9b7f-5071c12bd20a.PNG)
 
 Output snapshots on ThingSpeak :-
+
 ![i1](https://user-images.githubusercontent.com/47209023/62412330-733a8580-b61e-11e9-8169-b6c48aaf69e4.PNG)
 
 ![i2](https://user-images.githubusercontent.com/47209023/62412333-7897d000-b61e-11e9-8a3c-4110b14c920b.PNG)
